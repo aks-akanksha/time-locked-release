@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.timelock;
 
 import org.springframework.boot.test.context.TestConfiguration;
 

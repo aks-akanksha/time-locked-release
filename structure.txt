@@ -1,0 +1,53 @@
+.
+├── demo
+│   ├── .gitattributes
+│   ├── .gitignore
+│   ├── HELP.md
+│   ├── mvnw
+│   ├── mvnw.cmd
+│   ├── pom.xml
+│   └── src
+│       ├── main
+│       │   ├── java
+│       │   └── resources
+│       └── test
+│           └── java
+├── docker
+│   ├── docker-compose.yml
+│   └── release-ui.Dockerfile
+├── Dockerfile
+├── .github
+│   └── workflows
+│       └── ci.yml
+├── .gitignore
+├── LICENSE
+├── postman
+│   └── collection.json
+├── README.md
+├── release-ui
+│   ├── eslint.config.js
+│   ├── .gitignore
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── public
+│   │   └── vite.svg
+│   ├── README.md
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── assets
+│   │   │   └── react.svg
+│   │   ├── index.css
+│   │   ├── lib
+│   │   │   ├── api.ts
+│   │   │   ├── auth.ts
+│   │   │   └── http.ts
+│   │   ├── main.jsx
+│   │   └── pages
+│   │       ├── Login.tsx
+│   │       └── Releases.tsx
+│   └── vite.config.js
+└── structure.txt
+
+18 directories, 33 files

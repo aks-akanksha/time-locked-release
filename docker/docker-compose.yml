@@ -1,0 +1,49 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3307:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ../demo
+      dockerfile: ../Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/appdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: appuser
+      SPRING_DATASOURCE_PASSWORD: apppass
+      JWT_SECRET: hkd5uf5oVZlCtrFXbTR9BnGzlSYACTtFKHtUeNVVuLI=
+      JWT_ISSUER: example.com
+      SERVER_PORT: "8080"
+    ports:
+      - "8081:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+  ui:
+    build:
+      context: ..
+      dockerfile: ./docker/release-ui.Dockerfile
+    environment:
+      - VITE_API_URL=http://app:8080
+    ports:
+      - "5173:80"
+    depends_on:
+      app:
+        condition: service_started
+
+
+volumes:
+  dbdata:

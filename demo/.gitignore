@@ -31,3 +31,21 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Maven output
+/target/
+
+# IDE
+/.idea/
+/.vscode/
+/*.iml
+
+# Logs
+*.log
+logs/
+
+# Spring
+*.pid
+
+# Maven wrapper jar
+.mvn/wrapper/maven-wrapper.jar
