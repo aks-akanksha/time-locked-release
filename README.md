@@ -1,228 +1,529 @@
-# Time-Locked Release
+# Time-Locked Release System
 
-A tiny end-to-end system to **create**, **schedule**, **approve**, and **execute** releases.
-Backend: Spring Boot + MySQL + JWT + Flyway + OpenAPI.
-Frontend: Vite + React.
-```THIS IS JUST THE FIRST BASIC VERSION, THE PROJECT IS STILL IN PROGRESS AND THERE IS STILL A LOT TO IMPLEMENT!!!```
+A comprehensive, production-ready system for **creating**, **scheduling**, **approving**, and **executing** time-locked releases with full audit trails, webhook support, and a modern web interface.
 
----
+## 🎯 Overview
 
-## Features
+Time-Locked Release is an enterprise-grade release management system that ensures releases are executed only after proper approval and at scheduled times. It provides role-based access control, comprehensive audit logging, webhook integrations, and a beautiful modern UI.
 
-* Create a release (title, description, optional JSON payload)
-* Schedule with a UTC timestamp
-* Approve (separate role)
-* Execute only when:
-
-  * status is `APPROVED`, and
-  * `scheduledAt <= now`
-* Background job auto-executes APPROVED & due releases
-* Optional webhook fired on execute
+**Tech Stack:**
+- **Backend**: Spring Boot 3.3.2, Java 21, MySQL 8.0, JWT, Flyway, OpenAPI
+- **Frontend**: React 19, Vite, TypeScript
+- **Infrastructure**: Docker, Docker Compose, Nginx
 
 ---
 
-## Monorepo layout
+## ✨ Features
+
+### Core Features
+- ✅ **Create Releases** - Create releases with title, description, and optional JSON payload
+- ✅ **Schedule Releases** - Schedule releases with UTC timestamps
+- ✅ **Approval Workflow** - Role-based approval system
+- ✅ **Time-Locked Execution** - Execute only when approved and scheduled time has passed
+- ✅ **Auto-Execution** - Background jobs automatically execute due releases
+- ✅ **Release Cancellation** - Cancel releases before execution
+- ✅ **Audit Logging** - Complete audit trail of all release actions
+- ✅ **Webhook Integration** - Automatic webhook calls on execution with retry mechanism
+
+### Advanced Features
+- 🔍 **Search & Filter** - Full-text search and status-based filtering
+- 📄 **Pagination** - Efficient pagination for large release lists
+- 📊 **Statistics Dashboard** - Real-time release statistics
+- 🎨 **Modern UI** - Beautiful, responsive web interface
+- 🔐 **Role-Based Access Control** - ADMIN, APPROVER, and USER roles
+- 📝 **Input Validation** - Comprehensive validation with helpful error messages
+- 🔄 **Webhook Retry** - Automatic retry with exponential backoff
+- 📈 **Release History** - View complete audit log for each release
+
+---
+
+## 🏗️ Architecture
+
+### Monorepo Structure
 
 ```
 .
-├── demo/                 # Spring Boot backend
-│   ├── src/main/java     # controllers, security, services, etc.
-│   ├── src/main/resources
-│   │   └── db/migration  # Flyway SQL migrations (V1..)
-│   └── src/test/java     # unit & integration tests (Testcontainers)
-├── release-ui/           # Vite + React UI
-├── docker/               # docker-compose + UI Dockerfile
-├── Dockerfile            # backend Dockerfile (multi-stage)
-└── postman/collection.json
+├── demo/                          # Spring Boot backend
+│   ├── src/main/java/
+│   │   └── com/example/timelock/
+│   │       ├── api/               # REST controllers & DTOs
+│   │       ├── audit/             # Audit logging
+│   │       ├── bootstrap/         # Data seeding
+│   │       ├── entity/            # JPA entities
+│   │       ├── exception/          # Custom exceptions
+│   │       ├── execution/         # Webhook client
+│   │       ├── policy/            # Security policies
+│   │       ├── release/           # Release domain logic
+│   │       ├── repo/              # JPA repositories
+│   │       └── security/          # JWT & security config
+│   ├── src/main/resources/
+│   │   ├── application.yml         # Application configuration
+│   │   └── db/migration/          # Flyway migrations
+│   └── src/test/java/             # Unit & integration tests
+├── release-ui/                    # React frontend
+│   ├── src/
+│   │   ├── lib/                   # API client & utilities
+│   │   ├── pages/                 # React components
+│   │   └── App.jsx                # Main app component
+│   └── package.json
+├── docker/                        # Docker configuration
+│   ├── docker-compose.yml         # Multi-service setup
+│   └── release-ui.Dockerfile      # Frontend Dockerfile
+├── Dockerfile                     # Backend Dockerfile
+├── postman/                       # API collection
+└── README.md                      # This file
 ```
+
+### Database Schema
+
+- **releases** - Main release table
+- **release_audit_log** - Audit trail for all actions
+- **users** - User accounts with roles
+- **route_scopes** - Route access control
+- **release_templates** - Release templates (optional)
 
 ---
 
-## Run it (recommended: Docker)
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Docker & Docker Compose (recommended)
+- OR JDK 21 + Maven + Node 18+ (for local development)
+
+### Option 1: Docker (Recommended)
 
 ```bash
+# Clone the repository
+git clone https://github.com/aks-akanksha/time-locked-release.git
+cd time-locked-release
+
+# Start all services
 cd docker
 docker compose up -d --build
+
+# Services will be available at:
+# - API: http://localhost:8081
+# - Swagger UI: http://localhost:8081/swagger-ui/index.html
+# - Web UI: http://localhost:5173
 ```
 
-* API: **[http://localhost:8081](http://localhost:8081)**
-* Swagger UI: **[http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html)**
-* Web UI (React): **[http://localhost:5173](http://localhost:5173)**
+### Option 2: Local Development
 
-> `docker-compose.yml` starts MySQL, the backend, and a static Nginx serving the built UI.
-
----
-
-## Run locally (backend + UI)
-
-### 1) Start MySQL (via compose)
+#### 1. Start Database
 
 ```bash
 cd docker
 docker compose up -d db
 ```
 
-### 2) Backend
-
-Requirements: JDK 21, Maven wrapper.
+#### 2. Start Backend
 
 ```bash
 cd demo
-# required JWT settings
+
+# Set required environment variables
 export JWT_SECRET='8evdgMoilLs4kfweAyXSh3LDTi0fdk6ru+d9NRpFto0='
 export JWT_ISSUER='example.com'
 
+# Run the application
 ./mvnw spring-boot:run
-# API now on http://localhost:8081
 ```
 
-### 3) Frontend
+Backend will be available at `http://localhost:8081`
 
-Requirements: Node 18+ / npm.
+#### 3. Start Frontend
 
 ```bash
 cd release-ui
+
+# Install dependencies
 npm ci
+
+# Start development server
 npm run dev
-# UI on http://localhost:5173
 ```
 
-> The UI points to `http://localhost:8081` by default.
-> To override, set `VITE_API_URL` before `npm run dev` or at build time.
+Frontend will be available at `http://localhost:5173`
 
 ---
 
-## Login (seeded users)
+## 👥 User Roles & Permissions
 
-On first boot, these users are seeded:
+The system includes three roles with different permissions:
 
-| Role     | Email                  | Password      | Can do                                         |
-| -------- | ---------------------- | ------------- | ---------------------------------------------- |
-| ADMIN    | `admin@example.com`    | `admin123`    | schedule, execute, approve (admin is superset) |
-| APPROVER | `approver@example.com` | `approver123` | approve                                        |
-| USER     | `user@example.com`     | `user123`     | create/list                                    |
+| Role | Email | Password | Permissions |
+|------|-------|-----------|-------------|
+| **ADMIN** | `admin@example.com` | `admin123` | Full access: create, schedule, approve, execute, cancel |
+| **APPROVER** | `approver@example.com` | `approver123` | Can approve releases |
+| **USER** | `user@example.com` | `user123` | Can create and view releases |
 
-You can log in from the UI (top left) or via Swagger `POST /auth/login`.
-
----
-
-## Release workflow (what to click)
-
-1. **Create** a release (USER or above)
-2. **Schedule** a time (ADMIN)
-
-   * UI converts your local time to UTC automatically
-3. **Approve** (APPROVER or ADMIN)
-4. **Execute** (ADMIN)
-
-   * If you try early → **409** `Cannot execute before scheduledAt`
-   * If not approved → **409** `Release must be APPROVED before execution`
-5. Or let the background jobs auto-execute when due:
-
-   * `DueExecutor` runs every 5s
-   * `ReleaseScheduler` runs every 30s
+> These users are automatically seeded on first boot.
 
 ---
 
-## Webhook on execute (optional)
+## 📋 Release Workflow
 
-When a release executes, the backend can POST to a webhook.
+### Standard Workflow
 
-**Configure it:**
+1. **Create Release** (USER/ADMIN)
+   - Fill in title, description, and optional JSON payload
+   - Release status: `DRAFT`
 
-* In `demo/src/main/resources/application.yml`:
+2. **Schedule Release** (ADMIN only)
+   - Set scheduled execution time (UTC)
+   - Release status: `SCHEDULED`
 
-  ```yaml
-  app:
-    release:
-      webhook-url: "https://webhook.site/<your-id>"
-  ```
+3. **Approve Release** (APPROVER/ADMIN)
+   - Approver reviews and approves
+   - Release status: `APPROVED`
 
-* Or via env var:
+4. **Execute Release** (ADMIN or Auto-execution)
+   - Manual execution: Admin clicks "Execute"
+   - Auto-execution: Background job runs every 5 seconds
+   - Execution only succeeds if:
+     - Status is `APPROVED`
+     - `scheduledAt <= now()`
+   - Release status: `EXECUTED`
+   - Webhook is triggered (if configured)
 
-  ```bash
-  export APP_RELEASE_WEBHOOK_URL="https://webhook.site/<your-id>"
-  ```
+### Alternative Actions
 
-**Payload sent:**
+- **Cancel Release** (ADMIN): Cancel a release before execution
+- **View History**: See complete audit log for any release
 
-```json
-{
-  "releaseId": 123,
-  "title": "Demo",
-  "payload": "{...payloadJson...}"
-}
+---
+
+## 🔌 API Documentation
+
+### Swagger UI
+
+Interactive API documentation is available at:
+```
+http://localhost:8081/swagger-ui/index.html
 ```
 
-Open your webhook URL to see requests arrive.
+### Key Endpoints
+
+#### Authentication
+- `POST /auth/login` - Login and get JWT token
+
+#### Releases
+- `GET /api/v1/releases` - List releases (with pagination, search, filtering)
+  - Query params: `page`, `size`, `sortBy`, `sortDir`, `status`, `search`
+- `GET /api/v1/releases/{id}` - Get release details
+- `POST /api/v1/releases` - Create new release
+- `POST /api/v1/releases/{id}/actions/schedule` - Schedule release
+- `POST /api/v1/releases/{id}/actions/approve` - Approve release
+- `POST /api/v1/releases/{id}/actions/execute` - Execute release
+- `POST /api/v1/releases/{id}/actions/cancel` - Cancel release
+- `GET /api/v1/releases/{id}/history` - Get audit log for release
+
+#### Statistics
+- `GET /api/v1/releases/statistics` - Get release statistics
+
+### Example API Calls
+
+#### Create Release
+
+```bash
+curl -X POST http://localhost:8081/api/v1/releases \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Production Release v1.0",
+    "description": "Major feature release",
+    "payloadJson": "{\"version\": \"1.0.0\", \"environment\": \"prod\"}"
+  }'
+```
+
+#### Schedule Release
+
+```bash
+curl -X POST http://localhost:8081/api/v1/releases/1/actions/schedule \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "scheduledAt": "2025-12-25T10:00:00Z"
+  }'
+```
+
+#### Get Releases with Pagination
+
+```bash
+curl "http://localhost:8081/api/v1/releases?page=0&size=10&status=APPROVED&sortBy=createdAt&sortDir=desc" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
 ---
 
-## API (Swagger)
+## 🎨 Frontend Features
 
-* Swagger UI: `http://localhost:8081/swagger-ui/index.html`
+### Modern UI Components
 
-Key endpoints:
+- **Statistics Dashboard**: Visual cards showing release counts by status
+- **Search Bar**: Real-time search across titles and descriptions
+- **Status Filter**: Filter releases by status
+- **Sort Options**: Sort by date, title, or scheduled time
+- **Pagination**: Navigate through pages of releases
+- **Release Cards**: Beautiful cards with status badges and metadata
+- **Action Buttons**: Context-aware action buttons based on role and status
+- **Error/Success Messages**: Clear user feedback
 
-* `POST /auth/login` → `{ token }`
-* `GET /api/v1/releases`
-* `POST /api/v1/releases` → create (`{ title, description, payloadJson }`)
-* `POST /api/v1/releases/{id}/actions/schedule` → `{ scheduledAt: "2025-10-05T11:25:00Z" }`
-* `POST /api/v1/releases/{id}/actions/approve`
-* `POST /api/v1/releases/{id}/actions/execute`
+### UI Screenshots
 
-> Business rule violations return **409 Conflict**.
-
----
-
-## Time zones
-
-* DB & API store/use **UTC**
-* UI takes your **local** time and sends **UTC ISO** (`.toISOString()`)
-* If calling the API yourself, send UTC like `2025-10-05T11:25:00Z`
-
----
-
-## Environment variables (backend)
-
-| Name                      | Required                             | Example                                        | Notes             |
-| ------------------------- | ------------------------------------ | ---------------------------------------------- | ----------------- |
-| `JWT_SECRET`              | yes                                  | `8evdgMoilLs4kfweAyXSh3LDTi0fdk6ru+d9NRpFto0=` | 32+ bytes Base64  |
-| `JWT_ISSUER`              | yes                                  | `example.com`                                  | Must match config |
-| `APP_RELEASE_WEBHOOK_URL` | no                                   | `https://webhook.site/<id>`                    | Optional          |
-| `SPRING_DATASOURCE_*`     | if you’re not using compose defaults | see `docker/docker-compose.yml`                | JDBC settings     |
+The UI features:
+- Gradient background with modern card-based layout
+- Color-coded status badges (DRAFT, SCHEDULED, APPROVED, EXECUTED, CANCELLED)
+- Responsive design that works on all screen sizes
+- Loading states and error handling
+- Intuitive forms with validation
 
 ---
 
-## Tests
+## 🔧 Configuration
 
-* Unit tests (service, with Mockito):
+### Environment Variables
 
-  ```bash
-  cd demo
-  ./mvnw -Dtest=ReleaseServiceTest test
-  ```
+#### Backend (Required)
+- `JWT_SECRET` - Base64-encoded secret for JWT signing (32+ bytes)
+- `JWT_ISSUER` - JWT issuer claim
 
-* All tests (includes Testcontainers MySQL integration tests):
+#### Backend (Optional)
+- `APP_RELEASE_WEBHOOK_URL` - Webhook URL for release execution
+- `SPRING_DATASOURCE_URL` - Database connection URL
+- `SPRING_DATASOURCE_USERNAME` - Database username
+- `SPRING_DATASOURCE_PASSWORD` - Database password
+- `SERVER_PORT` - Server port (default: 8081)
 
-  ```bash
-  cd demo
-  ./mvnw test
-  ```
+#### Frontend
+- `VITE_API_URL` - Backend API URL (default: http://localhost:8081)
+
+### Application Configuration
+
+See `demo/src/main/resources/application.yml` for detailed configuration options.
+
+For complete configuration guide, see [CONFIGURATION.md](./CONFIGURATION.md).
+
+---
+
+## 🔐 Security
+
+### Authentication
+
+- JWT-based authentication
+- Token expiration: 120 minutes (configurable)
+- Stateless sessions
+
+### Authorization
+
+- Role-based access control (RBAC)
+- Route-level permissions
+- Policy-based interceptors
+
+### Data Protection
+
+- Password hashing with BCrypt
+- SQL injection prevention (JPA)
+- Input validation and sanitization
+- CORS configuration
 
 ---
 
-## Troubleshooting
+## 📊 Monitoring & Logging
 
-* **401 Unauthorized** → login again and paste Bearer token in Swagger **Authorize**
-* **403 Forbidden** → you don’t have the required role (see table above)
-* **409 Conflict** → business rule (approve first; or wait until `scheduledAt`)
-* **Webhook not received** → set `app.release.webhook-url` (or env), and ensure outbound internet is allowed
+### Audit Logging
+
+Every release action is logged:
+- **CREATED** - Release creation
+- **SCHEDULED** - Release scheduling
+- **APPROVED** - Release approval
+- **EXECUTED** - Release execution
+- **CANCELLED** - Release cancellation
+
+View audit logs via: `GET /api/v1/releases/{id}/history`
+
+### Application Logging
+
+- Comprehensive logging throughout the application
+- Log levels: DEBUG, INFO, WARN, ERROR
+- Structured logging with context
+
+### Health Checks
+
+- Actuator health endpoint: `/actuator/health`
+- Database health checks
+- Service status monitoring
 
 ---
 
-## License
+## 🧪 Testing
 
-MIT (or your preferred license)
+### Run Tests
+
+```bash
+cd demo
+
+# Run all tests
+./mvnw test
+
+# Run specific test
+./mvnw -Dtest=ReleaseServiceTest test
+
+# Run with coverage
+./mvnw test jacoco:report
+```
+
+### Test Types
+
+- **Unit Tests**: Service layer with Mockito
+- **Integration Tests**: Full stack with Testcontainers (MySQL)
+- **API Tests**: Postman collection available
 
 ---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### 401 Unauthorized
+- **Solution**: Login again and get a new token
+- Token expires after 120 minutes
+
+#### 403 Forbidden
+- **Solution**: Check your role permissions
+- Some actions require ADMIN or APPROVER role
+
+#### 409 Conflict
+- **Solution**: Check business rules
+- Common causes:
+  - Trying to execute before scheduled time
+  - Trying to execute unapproved release
+  - Trying to cancel executed release
+
+#### Database Connection Issues
+- **Solution**: Check database is running
+- Verify connection settings in `application.yml`
+- Check Docker container health: `docker ps`
+
+#### Webhook Not Received
+- **Solution**: 
+  - Verify `APP_RELEASE_WEBHOOK_URL` is set
+  - Check webhook URL is accessible
+  - Review application logs for webhook errors
+
+### Debug Mode
+
+Enable debug logging:
+
+```yaml
+logging:
+  level:
+    com.example.timelock: DEBUG
+```
+
+---
+
+## 🚀 Deployment
+
+### Production Checklist
+
+- [ ] Change default database passwords
+- [ ] Generate secure JWT secret
+- [ ] Configure proper CORS origins
+- [ ] Set up SSL/TLS for database
+- [ ] Configure production logging
+- [ ] Set up monitoring and alerts
+- [ ] Configure backup strategy
+- [ ] Review security settings
+- [ ] Set up webhook endpoints
+- [ ] Configure environment-specific settings
+
+### Docker Production
+
+```bash
+# Build production images
+docker compose -f docker/docker-compose.yml build
+
+# Run with production environment
+docker compose -f docker/docker-compose.yml up -d
+```
+
+### Environment-Specific Configuration
+
+Use Spring profiles:
+
+```bash
+# Development
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Production
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+---
+
+## 📚 Additional Documentation
+
+- [IMPROVEMENTS.md](./IMPROVEMENTS.md) - Detailed list of improvements
+- [CONFIGURATION.md](./CONFIGURATION.md) - Complete configuration guide
+- [API Documentation](http://localhost:8081/swagger-ui/index.html) - Interactive API docs
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](./LICENSE) file for details.
+
+---
+
+## 🎯 Roadmap
+
+Future enhancements planned:
+
+- [ ] Email notifications
+- [ ] Release templates
+- [ ] Advanced scheduling (recurring releases)
+- [ ] Release dependencies
+- [ ] Rollback functionality
+- [ ] Multi-stage approval workflows
+- [ ] CI/CD integrations
+- [ ] Advanced analytics and metrics
+- [ ] User management UI
+- [ ] Release comments and notes
+
+---
+
+## 📞 Support
+
+For issues, questions, or contributions:
+- Open an issue on GitHub
+- Check the documentation
+- Review the troubleshooting section
+
+---
+
+## 🙏 Acknowledgments
+
+Built with:
+- Spring Boot
+- React
+- MySQL
+- Docker
+- And many other open-source libraries
+
+---
+
+**Made with ❤️ for better release management**
