@@ -12,3 +12,4 @@ public interface ReleaseTemplateRepository extends JpaRepository<ReleaseTemplate
   Optional<ReleaseTemplate> findByNameAndActiveTrue(String name);
 }
 
+

@@ -11,3 +11,4 @@ public record ReleaseStatisticsDto(
     long cancelledReleases
 ) {}
 
+

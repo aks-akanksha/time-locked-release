@@ -10,3 +10,4 @@ CREATE TABLE IF NOT EXISTS release_audit_log (
   INDEX idx_performed_at (performed_at)
 );
 
+

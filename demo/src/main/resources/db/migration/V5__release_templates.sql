@@ -12,3 +12,4 @@ CREATE TABLE IF NOT EXISTS release_templates (
   INDEX idx_active (active)
 );
 
+
